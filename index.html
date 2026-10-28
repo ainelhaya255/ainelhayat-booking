@@ -15,21 +15,18 @@
 <body>
 <div class="box" id="w">⏳ جاري التحميل…</div>
 <script>
-/* مستشفى عين الحياة التخصصي — صفحة الحجز على GitHub (v9.2).
-   الصفحة بتجيب صفحة الحجز من نظام المستشفى (Google Apps Script) وتعرضها هنا مباشرة،
-   من غير iframe ومن غير حسابات جوجل، علشان «يتعذر فتح الملف» ما تظهرش. ما تعدّلش غير سطر EXEC لو الرابط اتغير. */
 (function () {
   var EXEC = 'https://script.google.com/macros/s/AKfycbxIEnq2mPlqstE8qJW8v5faPUjw086J3ld0Br2PRzU3F5_O5fuLOOi5PL6J0hoUqg/exec';
+  var BASE = location.origin + location.pathname;
+  var SELF = /https:\/\/script\.google\.com\/(?:a\/[^\/"'\s]+\/)?macros\/s\/[A-Za-z0-9_-]+\/exec(?=[?&"'\s<\\]|$)/g;
+  function here(txt) { return String(txt).replace(SELF, BASE); }
   var params = new URLSearchParams(location.search);
   var page = params.get('page') || 'book';
   function fail(msg) {
     var w = document.getElementById('w');
     if (w) w.innerHTML = msg + '<br><a href="' + location.href + '">إعادة المحاولة</a>';
   }
-  // Staff pages and anything else are not served here: go to the system itself.
   if (page !== 'book' && page !== 'docs') { location.replace(EXEC + location.search); return; }
-
-  // google.script.run for the patient page -> fetch to the system (no Google cookies are sent).
   function runner(ok, bad) {
     return new Proxy({}, { get: function (t, k) {
       if (k === 'withSuccessHandler') return function (h) { return runner(h, bad); };
@@ -39,20 +36,19 @@
         var args = Array.prototype.slice.call(arguments);
         fetch(EXEC + '?api=run', { method: 'POST', credentials: 'omit', redirect: 'follow',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: String(k), args: args }) })
-          .then(function (r) { return r.json(); })
-          .then(function (v) { if (v && v.__err) { if (bad) bad(new Error(v.__err)); } else if (ok) ok(v ? v.r : null); })
+          .then(function (r) { return r.text(); })
+          .then(function (txt) { var v = JSON.parse(here(txt)); if (v && v.__err) { if (bad) bad(new Error(v.__err)); } else if (ok) ok(v ? v.r : null); })
           .catch(function (e) { if (bad) bad(e); });
       };
     } });
   }
   window.google = { script: { run: runner(null, null) } };
-
   params.set('api', 'page'); params.set('page', page);
   fetch(EXEC + '?' + params.toString(), { credentials: 'omit', redirect: 'follow' })
     .then(function (r) { return r.json(); })
     .then(function (v) {
       if (!v || !v.ok || !v.html) { fail((v && v.error) || 'تعذّر فتح صفحة الحجز.'); return; }
-      document.open(); document.write(v.html); document.close();
+      document.open(); document.write(here(v.html)); document.close();
       if (v.title) document.title = v.title;
       if (!document.querySelector('meta[name=viewport]')) {
         var m = document.createElement('meta'); m.name = 'viewport'; m.content = 'width=device-width, initial-scale=1'; document.head.appendChild(m);
