@@ -7,22 +7,59 @@
 <meta name="description" content="احجز كشفك في عيادات مستشفى عين الحياة التخصصي بالسويس من موبايلك.">
 <meta name="theme-color" content="#17603c">
 <style>
-  html,body{margin:0;height:100%;background:#f3f6f4;font-family:Tahoma,Arial,sans-serif}
-  iframe{position:fixed;inset:0;width:100%;height:100%;border:0;background:#f3f6f4}
-  #w{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#17603c;font-size:18px}
+  html,body{margin:0;background:#f3f6f4;font-family:Tahoma,Arial,sans-serif;color:#17603c}
+  .box{max-width:420px;margin:30vh auto 0;padding:0 16px;text-align:center;font-size:18px;line-height:1.8}
+  .box a{display:inline-block;margin-top:12px;background:#17603c;color:#fff;border-radius:10px;padding:8px 18px;text-decoration:none}
 </style>
 </head>
 <body>
-<div id="w">⏳ جاري التحميل…</div>
-<iframe id="f" title="حجز العيادات — مستشفى عين الحياة" allow="clipboard-write"></iframe>
+<div class="box" id="w">⏳ جاري التحميل…</div>
 <script>
-  // The hospital's system (Google Apps Script). Shown inside this page so phones signed in to several Google
-  // accounts do not get «عذرًا، يتعذر فتح الملف».
+/* مستشفى عين الحياة التخصصي — صفحة الحجز على GitHub (v9.2).
+   الصفحة بتجيب صفحة الحجز من نظام المستشفى (Google Apps Script) وتعرضها هنا مباشرة،
+   من غير iframe ومن غير حسابات جوجل، علشان «يتعذر فتح الملف» ما تظهرش. ما تعدّلش غير سطر EXEC لو الرابط اتغير. */
+(function () {
   var EXEC = 'https://script.google.com/macros/s/AKfycbxIEnq2mPlqstE8qJW8v5faPUjw086J3ld0Br2PRzU3F5_O5fuLOOi5PL6J0hoUqg/exec';
-  var q = location.search && location.search.length > 1 ? location.search : '?page=book';
-  var f = document.getElementById('f');
-  f.addEventListener('load', function () { var w = document.getElementById('w'); if (w) w.remove(); });
-  f.src = EXEC + q;
+  var params = new URLSearchParams(location.search);
+  var page = params.get('page') || 'book';
+  function fail(msg) {
+    var w = document.getElementById('w');
+    if (w) w.innerHTML = msg + '<br><a href="' + location.href + '">إعادة المحاولة</a>';
+  }
+  // Staff pages and anything else are not served here: go to the system itself.
+  if (page !== 'book' && page !== 'docs') { location.replace(EXEC + location.search); return; }
+
+  // google.script.run for the patient page -> fetch to the system (no Google cookies are sent).
+  function runner(ok, bad) {
+    return new Proxy({}, { get: function (t, k) {
+      if (k === 'withSuccessHandler') return function (h) { return runner(h, bad); };
+      if (k === 'withFailureHandler') return function (h) { return runner(ok, h); };
+      if (k === 'withUserObject') return function () { return runner(ok, bad); };
+      return function () {
+        var args = Array.prototype.slice.call(arguments);
+        fetch(EXEC + '?api=run', { method: 'POST', credentials: 'omit', redirect: 'follow',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ fn: String(k), args: args }) })
+          .then(function (r) { return r.json(); })
+          .then(function (v) { if (v && v.__err) { if (bad) bad(new Error(v.__err)); } else if (ok) ok(v ? v.r : null); })
+          .catch(function (e) { if (bad) bad(e); });
+      };
+    } });
+  }
+  window.google = { script: { run: runner(null, null) } };
+
+  params.set('api', 'page'); params.set('page', page);
+  fetch(EXEC + '?' + params.toString(), { credentials: 'omit', redirect: 'follow' })
+    .then(function (r) { return r.json(); })
+    .then(function (v) {
+      if (!v || !v.ok || !v.html) { fail((v && v.error) || 'تعذّر فتح صفحة الحجز.'); return; }
+      document.open(); document.write(v.html); document.close();
+      if (v.title) document.title = v.title;
+      if (!document.querySelector('meta[name=viewport]')) {
+        var m = document.createElement('meta'); m.name = 'viewport'; m.content = 'width=device-width, initial-scale=1'; document.head.appendChild(m);
+      }
+    })
+    .catch(function () { fail('تعذّر الاتصال — يُرجى التحقق من الإنترنت.'); });
+})();
 </script>
 </body>
 </html>
