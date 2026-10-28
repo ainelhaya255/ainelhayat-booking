@@ -1,4 +1,28 @@
-<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>حجز العيادات — مستشفى عين الحياة التخصصي</title>
-<meta http-equiv="refresh" content="0;url=https://script.google.com/macros/s/AKfycbxIEnq2mPlqstE8qJW8v5faPUjw086J3ld0Br2PRzU3F5_O5fuLOOi5PL6J0hoUqg/exec?page=book"><script>location.replace("https://script.google.com/macros/s/AKfycbxIEnq2mPlqstE8qJW8v5faPUjw086J3ld0Br2PRzU3F5_O5fuLOOi5PL6J0hoUqg/exec?page=book");</script></head>
-<body style="font-family:sans-serif;text-align:center;padding:40px">جاري فتح صفحة الحجز... <a href="https://script.google.com/macros/s/AKfycbxIEnq2mPlqstE8qJW8v5faPUjw086J3ld0Br2PRzU3F5_O5fuLOOi5PL6J0hoUqg/exec?page=book">اضغط هنا لو مفتحتش</a></body></html>
+<meta name="description" content="احجز كشفك في عيادات مستشفى عين الحياة التخصصي بالسويس من موبايلك.">
+<meta name="theme-color" content="#17603c">
+<style>
+  html,body{margin:0;height:100%;background:#f3f6f4;font-family:Tahoma,Arial,sans-serif}
+  iframe{position:fixed;inset:0;width:100%;height:100%;border:0;background:#f3f6f4}
+  #w{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#17603c;font-size:18px}
+</style>
+</head>
+<body>
+<div id="w">⏳ جاري التحميل…</div>
+<iframe id="f" title="حجز العيادات — مستشفى عين الحياة" allow="clipboard-write"></iframe>
+<script>
+  // The hospital's system (Google Apps Script). Shown inside this page so phones signed in to several Google
+  // accounts do not get «عذرًا، يتعذر فتح الملف».
+  var EXEC = 'https://script.google.com/macros/s/AKfycbxIEnq2mPlqstE8qJW8v5faPUjw086J3ld0Br2PRzU3F5_O5fuLOOi5PL6J0hoUqg/exec';
+  var q = location.search && location.search.length > 1 ? location.search : '?page=book';
+  var f = document.getElementById('f');
+  f.addEventListener('load', function () { var w = document.getElementById('w'); if (w) w.remove(); });
+  f.src = EXEC + q;
+</script>
+</body>
+</html>
