@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>عيادتي أونلاين | نظام حجز أونلاين لعيادات الدكاترة في مصر</title>
+<meta name="description" content="عيادتي أونلاين: نظام حجز أونلاين لعيادات الدكاترة الخاصة في مصر. المريض يحجز دوره من الموبايل بلينك من غير تطبيق، والسكرتيرة تدير الحجوزات من لوحة واحدة، وبياناتك ملكك على Google Sheets.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="عيادتي أونلاين | نظام حجز أونلاين لعيادات الدكاترة">
+<meta property="og:description" content="المريض يحجز دوره من الموبايل بلينك من غير تطبيق. لوحة للسكرتيرة، شاشة انتظار، وإحصائيات للدكتور. بياناتك ملكك على Google Sheets.">
+<!-- TODO: حط رابط الموقع هنا بعد ما ترفعه، وحط صورة للمشاركة لو عملت واحدة -->
+<!-- <meta property="og:url" content="https://example.com/"> -->
+<!-- <meta property="og:image" content="https://example.com/og-image.png"> -->
+<meta name="theme-color" content="#0b5fa5">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ===== عيادتي أونلاين — ملف واحد، من غير مكتبات ===== */
+:root{
+  --blue:#0b5fa5; --blue-dark:#084a82; --blue-light:#e8f3fb; --teal:#00a99d;
+  --ink:#12263a; --muted:#5b7286; --bg:#ffffff; --soft:#f4f9fd; --line:#dcebf5;
+  --radius:16px; --shadow:0 8px 24px rgba(11,95,165,.10);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Cairo',system-ui,sans-serif;color:var(--ink);background:var(--bg);line-height:1.8}
+img,svg{display:block}
+a{text-decoration:none;color:inherit}
+.container{width:min(1100px,92%);margin:0 auto}
+section{padding:64px 0}
+h1{font-size:clamp(28px,6vw,44px);line-height:1.35;font-weight:900}
+h2{font-size:clamp(22px,4.5vw,30px);font-weight:800;line-height:1.4;text-align:center}
+h2 + p.sub{text-align:center;color:var(--muted);max-width:640px;margin:10px auto 0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 26px;border-radius:999px;font-weight:800;font-size:16px;border:2px solid transparent;cursor:pointer;font-family:inherit;transition:.2s}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:var(--blue-dark)}
+.btn-teal{background:var(--teal);color:#fff}
+.btn-teal:hover{filter:brightness(.92)}
+.btn-outline{border-color:var(--blue);color:var(--blue);background:#fff}
+.btn-outline:hover{background:var(--blue-light)}
+.btn-block{width:100%}
+
+/* ===== الهيدر ===== */
+header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.96);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.header-in{display:flex;align-items:center;justify-content:space-between;padding:12px 0;gap:12px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:900;font-size:20px;color:var(--blue)}
+.logo .mark{width:42px;height:42px;border-radius:12px;background:var(--blue);display:grid;place-items:center;flex:none}
+.logo .mark svg{width:24px;height:24px}
+.logo small{display:block;font-size:11px;color:var(--muted);font-weight:600;line-height:1.2}
+nav{display:flex;gap:22px;font-weight:700;font-size:15px;color:var(--muted)}
+nav a:hover{color:var(--blue)}
+.header-in .btn{padding:9px 20px;font-size:14px}
+@media(max-width:760px){nav{display:none}}
+
+/* ===== الهيرو ===== */
+.hero{background:linear-gradient(180deg,var(--blue-light),#fff 70%);padding:72px 0 56px}
+.hero-in{display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:center}
+.hero .badge{display:inline-block;background:#fff;border:1px solid var(--line);color:var(--blue);font-weight:700;font-size:13px;padding:6px 14px;border-radius:999px;margin-bottom:16px}
+.hero p.lead{color:var(--muted);font-size:18px;margin:16px 0 26px;max-width:520px}
+.hero p.lead b{color:var(--ink)}
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap}
+.hero-note{margin-top:18px;font-size:14px;color:var(--muted);display:flex;gap:8px;align-items:center}
+.hero-note svg{width:18px;height:18px;flex:none}
+@media(max-width:820px){.hero-in{grid-template-columns:1fr}.hero p.lead{font-size:16px}}
+
+/* موبايل الهيرو — رسم بالـ CSS */
+.phone{width:min(280px,80%);margin:0 auto;background:#0f2b46;border-radius:36px;padding:12px;box-shadow:0 24px 48px rgba(11,95,165,.25)}
+.phone-screen{background:#fff;border-radius:26px;overflow:hidden;min-height:480px}
+.phone-top{background:var(--blue);color:#fff;padding:18px 16px 14px;text-align:center}
+.phone-top b{display:block;font-size:17px}
+.phone-top span{font-size:12px;opacity:.85}
+.phone-body{padding:16px}
+.chip-row{display:flex;gap:8px;margin-bottom:12px}
+.chip{flex:1;text-align:center;font-size:12px;font-weight:700;padding:8px 4px;border-radius:10px;background:var(--blue-light);color:var(--blue)}
+.chip.on{background:var(--blue);color:#fff}
+.slot{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;font-size:14px;font-weight:700}
+.slot span{color:var(--teal);font-size:13px}
+.slot.taken{opacity:.55}
+.slot.taken span{color:var(--muted)}
+.book-btn{display:block;text-align:center;background:var(--teal);color:#fff;font-weight:800;border-radius:12px;padding:12px;margin-top:14px}
+.ticket{margin-top:14px;border:2px dashed var(--teal);border-radius:12px;padding:12px;text-align:center;font-size:13px;color:var(--muted)}
+.ticket b{display:block;font-size:22px;color:var(--blue)}
+
+/* ===== المشكلة ===== */
+.pain-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px}
+@media(max-width:760px){.pain-grid{grid-template-columns:1fr}}
+.pain{background:var(--soft);border:1px solid var(--line);border-radius:var(--radius);padding:24px}
+.pain .ico{width:48px;height:48px;border-radius:14px;background:#fff;display:grid;place-items:center;margin-bottom:14px;box-shadow:var(--shadow)}
+.pain .ico svg{width:24px;height:24px}
+.pain h3{font-size:18px;margin-bottom:6px}
+.pain p{color:var(--muted);font-size:15px}
+
+/* ===== المميزات ===== */
+.features{background:var(--soft)}
+.feat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:36px}
+@media(max-width:900px){.feat-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.feat-grid{grid-template-columns:1fr}}
+.feat{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow)}
+.feat .ico{width:46px;height:46px;border-radius:12px;background:var(--blue-light);display:grid;place-items:center;margin-bottom:12px}
+.feat .ico svg{width:23px;height:23px}
+.feat h3{font-size:16px;margin-bottom:4px}
+.feat p{color:var(--muted);font-size:14px;line-height:1.7}
+
+/* ===== إزاي بيشتغل ===== */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px;counter-reset:step}
+@media(max-width:760px){.steps{grid-template-columns:1fr}}
+.step{position:relative;border:1px solid var(--line);border-radius:var(--radius);padding:28px 22px;text-align:center}
+.step .num{width:52px;height:52px;margin:0 auto 14px;border-radius:50%;background:var(--blue);color:#fff;display:grid;place-items:center;font-size:24px;font-weight:900}
+.step h3{font-size:18px;margin-bottom:6px}
+.step p{color:var(--muted);font-size:15px}
+
+/* ===== الشاشات ===== */
+.screens{background:var(--soft)}
+.screen-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:36px;align-items:start}
+@media(max-width:820px){.screen-grid{grid-template-columns:1fr}}
+.screen-card{text-align:center}
+.screen-card h3{font-size:18px;margin-bottom:4px}
+.screen-card p{color:var(--muted);font-size:14px;margin-bottom:18px}
+.dash{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);text-align:right}
+.dash-head{background:var(--blue);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:15px}
+.dash-head span{font-size:12px;background:rgba(255,255,255,.2);padding:4px 10px;border-radius:999px}
+.dash-body{padding:16px}
+.dash-row{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);border-radius:12px;padding:11px 14px;margin-bottom:8px;font-size:14px;font-weight:700}
+.dash-row .st{font-size:12px;padding:4px 10px;border-radius:999px}
+.st.wait{background:#fff7e0;color:#8a6d00}
+.st.in{background:#e6f7f4;color:#007a70}
+.st.done{background:var(--blue-light);color:var(--blue)}
+.dash-actions{display:flex;gap:8px;margin-top:12px}
+.dash-actions span{flex:1;text-align:center;font-size:13px;font-weight:800;padding:10px;border-radius:10px}
+.dash-actions .call{background:var(--blue);color:#fff}
+.dash-actions .add{background:var(--blue-light);color:var(--blue)}
+
+/* ===== الباقات ===== */
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:36px;align-items:stretch}
+@media(max-width:820px){.plans{grid-template-columns:1fr}}
+.plan{border:2px solid var(--line);border-radius:20px;padding:28px 24px;display:flex;flex-direction:column;position:relative;background:#fff}
+.plan.hot{border-color:var(--blue);box-shadow:0 16px 40px rgba(11,95,165,.18)}
+.plan .tag{position:absolute;top:-14px;right:24px;background:var(--teal);color:#fff;font-size:13px;font-weight:800;padding:4px 14px;border-radius:999px}
+.plan h3{font-size:20px}
+.plan .price{font-size:34px;font-weight:900;color:var(--blue);margin:10px 0 4px}
+.plan .price small{font-size:15px;color:var(--muted);font-weight:700}
+.plan ul{list-style:none;margin:18px 0 24px;flex:1}
+.plan li{padding:8px 0;border-bottom:1px dashed var(--line);font-size:15px;display:flex;gap:8px;align-items:flex-start}
+.plan li svg{width:18px;height:18px;flex:none;margin-top:5px}
+.plan .btn{margin-top:auto}
+.setup-note{text-align:center;color:var(--muted);margin-top:26px;font-size:15px}
+.setup-note b{color:var(--ink)}
+
+/* ===== الأسئلة ===== */
+.faq{max-width:760px;margin:36px auto 0}
+.faq-item{border:1px solid var(--line);border-radius:14px;margin-bottom:10px;overflow:hidden;background:#fff}
+.faq-q{width:100%;background:none;border:0;font-family:inherit;font-size:16px;font-weight:800;text-align:right;padding:18px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;color:var(--ink)}
+.faq-q .plus{flex:none;width:28px;height:28px;border-radius:50%;background:var(--blue-light);color:var(--blue);display:grid;place-items:center;font-size:20px;font-weight:900;transition:.2s}
+.faq-item.open .faq-q .plus{transform:rotate(45deg);background:var(--blue);color:#fff}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.faq-a p{padding:0 20px 18px;color:var(--muted);font-size:15px}
+
+/* ===== الفورم ===== */
+.demo{background:linear-gradient(180deg,var(--blue-light),#fff)}
+.form-card{max-width:560px;margin:36px auto 0;background:#fff;border:1px solid var(--line);border-radius:20px;padding:28px;box-shadow:var(--shadow)}
+.form-card label{display:block;font-weight:800;font-size:14px;margin:14px 0 6px}
+.form-card label:first-child{margin-top:0}
+.form-card input,.form-card select{width:100%;padding:13px 14px;border:1.5px solid var(--line);border-radius:12px;font-family:inherit;font-size:16px;color:var(--ink);background:#fff}
+.form-card input:focus,.form-card select:focus{outline:2px solid var(--blue);border-color:var(--blue)}
+.form-card .btn{margin-top:22px}
+.form-note{text-align:center;color:var(--muted);font-size:13px;margin-top:12px}
+
+/* ===== الفوتر + واتساب ثابت ===== */
+footer{background:var(--blue-dark);color:#cfe6f5;padding:40px 0 28px;text-align:center}
+footer b{color:#fff;font-size:18px}
+footer p{font-size:14px;margin-top:6px}
+.wa-float{position:fixed;bottom:20px;left:20px;z-index:60;width:58px;height:58px;border-radius:50%;background:#25d366;display:grid;place-items:center;box-shadow:0 10px 24px rgba(0,0,0,.25)}
+.wa-float svg{width:30px;height:30px}
+</style>
+</head>
+<body>
+
+<!-- TODO: بدّل [رقمك] برقم الواتساب بالصيغة الدولية من غير + ولا مسافات، مثال: 2010XXXXXXX -->
+<!-- TODO: بدّل [لينك صفحة الحجز التجريبية] بلينك الديمو الحقيقي -->
+<!-- TODO: بدّل [السعر] في الباقات بالأسعار الحقيقية -->
+
+<header>
+  <div class="container header-in">
+    <a class="logo" href="#top">
+      <span class="mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      </span>
+      <span>عيادتي أونلاين<small>نظام حجز عيادات</small></span>
+    </a>
+    <nav>
+      <a href="#features">المميزات</a>
+      <a href="#how">إزاي بيشتغل</a>
+      <a href="#pricing">الباقات</a>
+      <a href="#faq">أسئلة شائعة</a>
+    </nav>
+    <a class="btn btn-primary" href="#demo">اطلب ديمو</a>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- ===== الهيرو ===== -->
+<section class="hero">
+  <div class="container hero-in">
+    <div>
+      <span class="badge">لعيادات الدكاترة الخاصة في مصر</span>
+      <h1>خلّص زحمة العيادة وتليفونات الحجز…<br>وخلّي المريض يحجز دوره من الموبايل</h1>
+      <p class="lead">مع <b>عيادتي أونلاين</b>، المريض بيحجز من لينك من غير ما ينزّل تطبيق، والسكرتيرة بتدير اليوم كله من لوحة واحدة، وانت بتشوف أرقام عيادتك في أي وقت.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="[لينك صفحة الحجز التجريبية]" target="_blank" rel="noopener">جرّب الديمو</a>
+        <a class="btn btn-teal" href="https://wa.me/[رقمك]?text=%D8%B9%D8%A7%D9%8A%D8%B2%20%D8%A3%D8%B9%D8%B1%D9%81%20%D8%AA%D9%81%D8%A7%D8%B5%D9%8A%D9%84%20%D8%B9%D9%8A%D8%A7%D8%AF%D8%AA%D9%8A%20%D8%A3%D9%88%D9%86%D9%84%D8%A7%D9%8A%D9%86" target="_blank" rel="noopener">كلمنا واتساب</a>
+      </div>
+      <p class="hero-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#00a99d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        من غير تطبيق ينزّله المريض — ومن غير سيرفر تدفع عليه
+      </p>
+    </div>
+    <div>
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="phone-top"><b>عيادة د. أحمد</b><span>السبت — الحجز مفتوح</span></div>
+          <div class="phone-body">
+            <div class="chip-row"><span class="chip on">اليوم</span><span class="chip">غدًا</span><span class="chip">بعد غد</span></div>
+            <div class="slot">10:00 صباحًا <span>متاح</span></div>
+            <div class="slot taken">10:30 صباحًا <span>محجوز</span></div>
+            <div class="slot">11:00 صباحًا <span>متاح</span></div>
+            <div class="slot">11:30 صباحًا <span>متاح</span></div>
+            <a class="book-btn" href="[لينك صفحة الحجز التجريبية]" target="_blank" rel="noopener">احجز دورك</a>
+            <div class="ticket">رقم الحجز<b>12</b>دورك رقم 5 — تابع حجزه أو الغيه في أي وقت</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== المشكلة ===== -->
+<section>
+  <div class="container">
+    <h2>تعرف الوجع ده؟</h2>
+    <p class="sub">لو أي نقطة من دول بتحصل في عيادتك كل يوم، فالنظام ده معمول عشانك.</p>
+    <div class="pain-grid">
+      <div class="pain">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#0b5fa5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
+        <h3>التليفون مبيسكتش</h3>
+        <p>السكرتيرة بترد على مكالمات الحجز طول اليوم، والمريض بيتصل كذا مرة عشان يعرف دوره وصل لفين.</p>
+      </div>
+      <div class="pain">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#0b5fa5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+        <h3>زحمة في الانتظار</h3>
+        <p>المرضى بييجوا كلهم في نفس الوقت، والانتظار بيطول، والشكوى بتبدأ قبل ما الكشف يبدأ.</p>
+      </div>
+      <div class="pain">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#0b5fa5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg></div>
+        <h3>الحجوزات على ورق</h3>
+        <p>دفتر الحجز بيضيع أو بيتلخبط، ومفيش صورة واضحة لعدد حجوزات اليوم ولا مين حضر ومين اعتذر.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== المميزات ===== -->
+<section class="features" id="features">
+  <div class="container">
+    <h2>كل اللي عيادتك محتاجاه… في مكان واحد</h2>
+    <p class="sub">مميزات حقيقية شغالة، من غير تعقيد ومن غير تطبيق ينزّله المريض.</p>
+    <div class="feat-grid">
+      <div class="feat">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#0b5fa5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg></div>
+        <h3>حجز من الموبايل بلينك</h3><p>المريض بيحجز دوره من الموبايل بلينك، من غير ما ينزّل أي تطبيق.</p>
+      </div>
+      <div class="feat">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#0b5fa5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg></div>
+        <h3>رقم الدور ورقم الحجز</h3><p>بيوصله رقم الدور ورقم الحجز، ويقدر يتابع حجزه أو يلغيه بنفسه.</p>
+      </div>
+      <div class="feat">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#0b5fa5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+        <h3>لوحة السكرتيرة</h3><p>تشوف حجوزات اليوم، وتسجل الحضور، وتنادي الدور، وتضيف حجز تليفون أو حضور.</p>
+      </div>
+      <div class="feat">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#0b5fa5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <h3>حسابات بصلاحيات</h3><p>حسابات للسكرتارية بصلاحيات، كل واحد يشوف اللي يخص شغله بس.</p>
+      </div>
+      <div class="feat">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#0b5fa5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+        <h3>وصول الدكتور أو اعتذاره</h3><p>الدكتور يسجل وصوله أو اعتذاره، والحجز بيتقفل لوحده لما العدد يكمل.</p>
+      </div>
+      <div class="feat">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#0b5fa5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+        <h3>شاشة انتظار</h3><p>شاشة انتظار تتعرض على تلفزيون العيادة، والمريض يشوف دوره وصل لفين.</p>
+      </div>
+      <div class="feat">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#0b5fa5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg></div>
+        <h3>أرقام وإحصائيات</h3><p>لوحة أرقام وإحصائيات للدكتور عن حجوزات عيادته.</p>
+      </div>
+      <div class="feat">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#0b5fa5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div>
+        <h3>بياناتك ملكك</h3><p>شغال على Google Sheets، يعني الدكتور بيملك بياناته، ومفيش سيرفر يدفع عليه.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== إزاي بيشتغل ===== -->
+<section id="how">
+  <div class="container">
+    <h2>إزاي بيشتغل؟ 3 خطوات بس</h2>
+    <div class="steps">
+      <div class="step"><div class="num">1</div><h3>اطلب الديمو</h3><p>ابعت بيانات عيادتك من الفورم اللي تحت، وهنوريك النظام شغال على عيادة تجريبية.</p></div>
+      <div class="step"><div class="num">2</div><h3>بنركّبه على عيادتك</h3><p>بنجهز لينك الحجز ولوحة السكرتيرة وشاشة الانتظار على بيانات عيادتك.</p></div>
+      <div class="step"><div class="num">3</div><h3>شارك اللينك</h3><p>ابعت لينك الحجز لمرضاك على واتساب، وهم يحجزوا من الموبايل من غير تطبيق.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== شكل الشاشات ===== -->
+<section class="screens">
+  <div class="container">
+    <h2>شوف الشاشات قبل ما تشترك</h2>
+    <p class="sub">دي رسومات توضيحية للشاشات الحقيقية، بنفس شكل النظام.</p>
+    <div class="screen-grid">
+      <div class="screen-card">
+        <h3>صفحة حجز المريض</h3>
+        <p>المريض يختار اليوم والميعاد، وياخد رقم الدور ورقم الحجز.</p>
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="phone-top"><b>احجز دورك</b><span>عيادة د. أحمد — السبت</span></div>
+            <div class="phone-body">
+              <div class="chip-row"><span class="chip on">اليوم</span><span class="chip">غدًا</span><span class="chip">بعد غد</span></div>
+              <div class="slot">10:00 صباحًا <span>متاح</span></div>
+              <div class="slot">11:00 صباحًا <span>متاح</span></div>
+              <div class="slot taken">12:00 ظهرًا <span>محجوز</span></div>
+              <a class="book-btn" href="[لينك صفحة الحجز التجريبية]" target="_blank" rel="noopener">تأكيد الحجز</a>
+              <div class="ticket">تم حجزك بنجاح<b>دور 5 — حجز 12</b>هتوصلك التفاصيل، وتقدر تلغي في أي وقت</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="screen-card">
+        <h3>لوحة السكرتيرة</h3>
+        <p>حجوزات اليوم قدامها، تسجل الحضور وتنادي الدور بضغطة.</p>
+        <div class="dash">
+          <div class="dash-head">حجوزات اليوم — السبت <span>18 حجز</span></div>
+          <div class="dash-body">
+            <div class="dash-row"><span>أحمد محمد — دور 1</span><span class="st done">تم الكشف</span></div>
+            <div class="dash-row"><span>سارة علي — دور 2</span><span class="st in">عند الدكتور</span></div>
+            <div class="dash-row"><span>محمود حسن — دور 3</span><span class="st wait">في الانتظار</span></div>
+            <div class="dash-row"><span>منى إبراهيم — دور 4</span><span class="st wait">في الانتظار</span></div>
+            <div class="dash-row"><span>خالد عمر — دور 5</span><span class="st wait">في الانتظار</span></div>
+            <div class="dash-actions"><span class="call">نادِ الدور 3</span><span class="add">+ حجز تليفون</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== الباقات ===== -->
+<section id="pricing">
+  <div class="container">
+    <h2>الباقات</h2>
+    <p class="sub">اختار الباقة المناسبة لعيادتك، وتقدر تطوّرها في أي وقت.</p>
+    <div class="plans">
+      <div class="plan">
+        <h3>أساسية</h3>
+        <div class="price">[السعر] <small>جنيه / شهريًا</small></div>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="#00a99d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>حجز المريض من الموبايل بلينك</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="#00a99d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>لوحة السكرتيرة كاملة</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="#00a99d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>رقم الدور ورقم الحجز ومتابعة الحجز</li>
+        </ul>
+        <a class="btn btn-outline btn-block" href="#demo">اطلب الباقة دي</a>
+      </div>
+      <div class="plan hot">
+        <span class="tag">الأكثر طلبًا</span>
+        <h3>متوسطة</h3>
+        <div class="price">[السعر] <small>جنيه / شهريًا</small></div>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="#00a99d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>كل مميزات الباقة الأساسية</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="#00a99d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>شاشة انتظار على تلفزيون العيادة</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="#00a99d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>أكتر من دكتور في نفس العيادة</li>
+        </ul>
+        <a class="btn btn-primary btn-block" href="#demo">اطلب الباقة دي</a>
+      </div>
+      <div class="plan">
+        <h3>كاملة</h3>
+        <div class="price">[السعر] <small>جنيه / شهريًا</small></div>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="#00a99d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>كل مميزات الباقة المتوسطة</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="#00a99d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>بوت واتساب للحجز</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="#00a99d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>رفع أوراق التأمين</li>
+        </ul>
+        <a class="btn btn-outline btn-block" href="#demo">اطلب الباقة دي</a>
+      </div>
+    </div>
+    <p class="setup-note">رسوم تركيب مرة واحدة: <b>[السعر] جنيه</b> — وتدفع مرة واحدة بس عند التركيب.</p>
+  </div>
+</section>
+
+<!-- ===== الأسئلة الشائعة ===== -->
+<section id="faq" style="background:var(--soft)">
+  <div class="container">
+    <h2>أسئلة شائعة</h2>
+    <div class="faq">
+      <div class="faq-item">
+        <button class="faq-q" type="button">المريض لازم ينزّل تطبيق؟<span class="plus">+</span></button>
+        <div class="faq-a"><p>لا. المريض بيفتح لينك الحجز من الموبايل ويحجز على طول، من غير أي تطبيق.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" type="button">مين بيملك بيانات الحجوزات؟<span class="plus">+</span></button>
+        <div class="faq-a"><p>انت. النظام شغال على Google Sheets، فبيانات عيادتك عندك وملكك، ومفيش سيرفر تدفع عليه.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" type="button">السكرتيرة تقدر تضيف حجز تليفون أو حضور؟<span class="plus">+</span></button>
+        <div class="faq-a"><p>أيوه. من لوحة السكرتيرة تقدر تضيف حجز تليفون أو حضور، وتسجل الحضور وتنادي الدور.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" type="button">لو الدكتور اعتذر أو العدد اكتمل، الحجز بيتقفل؟<span class="plus">+</span></button>
+        <div class="faq-a"><p>أيوه. الدكتور بيسجل وصوله أو اعتذاره، والحجز بيتقفل لوحده لما العدد يكمل.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" type="button">بوت الواتساب ورفع أوراق التأمين included في كل الباقات؟<span class="plus">+</span></button>
+        <div class="faq-a"><p>لا، دي إضافات اختيارية. بوت الواتساب ورفع أوراق التأمين موجودين في الباقة الكاملة، وتقدر تضيفهم على باقة تانية لو حبيت — كلمنا واتساب للتفاصيل.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" type="button">أقدر أجرب قبل ما أشترك؟<span class="plus">+</span></button>
+        <div class="faq-a"><p>أيوه. اطلب ديمو من الفورم اللي تحت، أو جرّب الديمو من الزرار اللي فوق، وهتشوف النظام شغال بنفسك قبل أي اشتراك.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== فورم الديمو ===== -->
+<section class="demo" id="demo">
+  <div class="container">
+    <h2>اطلب ديمو لعيادتك</h2>
+    <p class="sub">سيب بياناتك، وهتتحول لواتساب برسالة جاهزة — من غير ما تسجل في أي مكان.</p>
+    <form class="form-card" id="demoForm">
+      <label for="fName">الاسم</label>
+      <input id="fName" type="text" placeholder="اسم الدكتور" required>
+      <label for="fSpec">التخصص</label>
+      <input id="fSpec" type="text" placeholder="مثال: باطنة، أطفال، عظام…" required>
+      <label for="fCity">المدينة</label>
+      <input id="fCity" type="text" placeholder="مثال: السويس" required>
+      <label for="fPhone">الموبايل</label>
+      <input id="fPhone" type="tel" placeholder="01XXXXXXXXX" required>
+      <button class="btn btn-teal btn-block" type="submit">ابعت طلب الديمو على واتساب</button>
+      <p class="form-note">بالضغط على الزرار، هيتفتح واتساب برسالة جاهزة فيها بياناتك.</p>
+    </form>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <b>عيادتي أونلاين</b>
+    <p>نظام حجز أونلاين لعيادات الدكاترة الخاصة في مصر</p>
+    <!-- TODO: املأ بيانات التواصل هنا لو حابب تظهر في الفوتر -->
+  </div>
+</footer>
+
+<a class="wa-float" href="https://wa.me/[رقمك]?text=%D8%B9%D8%A7%D9%8A%D8%B2%20%D8%A3%D8%B9%D8%B1%D9%81%20%D8%AA%D9%81%D8%A7%D8%B5%D9%8A%D9%84%20%D8%B9%D9%8A%D8%A7%D8%AF%D8%AA%D9%8A%20%D8%A3%D9%88%D9%86%D9%84%D8%A7%D9%8A%D9%86" target="_blank" rel="noopener" aria-label="كلمنا واتساب">
+  <svg viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+</a>
+
+<script>
+// ===== الأسئلة الشائعة: فتح وقفل =====
+document.querySelectorAll('.faq-item').forEach(function(item){
+  item.querySelector('.faq-q').addEventListener('click', function(){
+    var open = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(function(i){
+      i.classList.remove('open');
+      i.querySelector('.faq-a').style.maxHeight = null;
+    });
+    if(!open){
+      item.classList.add('open');
+      var a = item.querySelector('.faq-a');
+      a.style.maxHeight = a.scrollHeight + 'px';
+    }
+  });
+});
+
+// ===== فورم الديمو: يفتح واتساب برسالة جاهزة — من غير سيرفر =====
+// TODO: حط رقم الواتساب هنا بالصيغة الدولية من غير + ولا مسافات، مثال: 2010XXXXXXX
+var WHATSAPP_NUMBER = '[رقمك]';
+document.getElementById('demoForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  var name  = document.getElementById('fName').value.trim();
+  var spec  = document.getElementById('fSpec').value.trim();
+  var city  = document.getElementById('fCity').value.trim();
+  var phone = document.getElementById('fPhone').value.trim();
+  var msg = 'عايز ديمو لعيادتي أونلاين\n'
+    + 'الاسم: ' + name + '\n'
+    + 'التخصص: ' + spec + '\n'
+    + 'المدينة: ' + city + '\n'
+    + 'الموبايل: ' + phone;
+  window.open('https://wa.me/' + WHATSAPP_NUMBER + '?text=' + encodeURIComponent(msg), '_blank');
+});
+</script>
+</body>
+</html>
